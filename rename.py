@@ -1,34 +1,46 @@
 import os
 from PIL import Image
 
-images = os.listdir('.')
+# Function to convert all jpg to png
+def convert_jpg_to_png(directory):
+    images = os.listdir(directory)
+    converted = False
+    for file in images:
+        if file.endswith('.jpg'):
+            img = Image.open(os.path.join(directory, file))
+            file_name = os.path.splitext(file)[0]
+            new_file_path = os.path.join(directory, file_name + '.png')
+            img.save(new_file_path, 'PNG')
+            print(f"{file} converted to {file_name}.png")
+            os.remove(os.path.join(directory, file))
+            print(f"{file} was deleted")
+            converted = True
+    if not converted:
+        print("No jpg files to convert")
 
-# Convert all jpg to png
-for file in images:
-    if file.endswith('.jpg'):
-        img = Image.open(file)
-        file_name = os.path.splitext(file)[0]
-        img.save(file_name + '.png', 'PNG')
-        print(f"{file} converted to {file_name}.png")
-        os.remove(file)
-        print(f"{file} was deleted")
-
-# Numbering of images
-counter = 1
-for file in images:
-    if file.endswith('.png'):
-        new_file_name = f"{counter}.png"
-        next = True
-        
-        for exist in images:
-            if exist == new_file_name:
-                next = False;
-
-        if next: 
-            os.rename(file, new_file_name)
-            print(f"{file} renamed to {new_file_name}")
+# Function to rename images
+def rename_images(directory):
+    images = os.listdir(directory)
+    png_files = sorted([file for file in images if file.endswith('.png')])
     
-        counter += 1
+    renamed = False
+    for counter, file in enumerate(png_files, start=1):
+        new_file_name = f"{counter}.png"
+        new_file_path = os.path.join(directory, new_file_name)
+        current_file_path = os.path.join(directory, file)
+        if current_file_path != new_file_path:
+            os.rename(current_file_path, new_file_path)
+            print(f"{file} renamed to {new_file_name}")
+            renamed = True
+    
+    if not renamed:
+        print("No png files to rename")
 
-if not next:
-    print("Nothing to do")
+# Main function
+def main():
+    directory = '.'  # current directory, can be changed to the desired one
+    convert_jpg_to_png(directory)
+    rename_images(directory)
+
+if __name__ == "__main__":
+    main()
