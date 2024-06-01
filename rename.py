@@ -1,45 +1,76 @@
 import os
 from PIL import Image
 
-# Function to convert all jpg to png
-def convert_jpg_to_png(directory):
+def convert_images_to_png(directory):
     images = os.listdir(directory)
+    array_to_remove = [] 
     converted = False
-    for file in images:
-        if file.endswith('.jpg'):
-            img = Image.open(os.path.join(directory, file))
-            file_name = os.path.splitext(file)[0]
-            new_file_path = os.path.join(directory, file_name + '.png')
-            img.save(new_file_path, 'PNG')
-            print(f"{file} converted to {file_name}.png")
-            os.remove(os.path.join(directory, file))
-            print(f"{file} was deleted")
-            converted = True
-    if not converted:
-        print("No jpg files to convert")
 
-# Function to rename images
+    # Convert .jpg and .webp images to .png.
+    for file in images:
+        file_path = os.path.join(directory, file)
+        file_name, file_ext = os.path.splitext(file)
+        
+        if file_ext.lower() in ['.jpg', '.webp']:
+            img = Image.open(file_path)
+            new_file_path = get_unique_file_path(directory, file_name + '.png')
+            img.save(new_file_path, 'PNG')
+            print(f"{file} converted to {os.path.basename(new_file_path)}")
+            
+            if file_ext.lower() in ['.jpg', '.webp']:
+                array_to_remove.append(file_path)
+            converted = True
+    
+    # Remove the jpg and webp files after converting
+    for file in array_to_remove:
+        os.remove(file)
+        print(f"{file} was deleted")
+    
+    if not converted:
+        print("No .jpg or .webp files to convert")
+
+def get_unique_file_path(directory, file_name):
+    """
+    Ensure the file path is unique to avoid overwriting existing files.
+    """
+    base_name, ext = os.path.splitext(file_name)
+    counter = 1
+    unique_file_path = os.path.join(directory, file_name)
+    
+    while os.path.exists(unique_file_path):
+        unique_file_path = os.path.join(directory, f"{base_name}_{counter}{ext}")
+        counter += 1
+    
+    return unique_file_path
+
 def rename_images(directory):
+    """
+    Rename .png images in the directory to a sequential numeric order.
+    """
     images = os.listdir(directory)
     png_files = sorted([file for file in images if file.endswith('.png')])
-    
     renamed = False
+    
     for counter, file in enumerate(png_files, start=1):
         new_file_name = f"{counter}.png"
         new_file_path = os.path.join(directory, new_file_name)
         current_file_path = os.path.join(directory, file)
+        
         if current_file_path != new_file_path:
+            new_file_path = get_unique_file_path(directory, new_file_name)
             os.rename(current_file_path, new_file_path)
-            print(f"{file} renamed to {new_file_name}")
+            print(f"{file} renamed to {os.path.basename(new_file_path)}")
             renamed = True
     
     if not renamed:
-        print("No png files to rename")
+        print("No .png files to rename")
 
-# Main function
 def main():
+    """
+    Main function to handle the image conversion and renaming process.
+    """
     directory = '.'  # current directory, can be changed to the desired one
-    convert_jpg_to_png(directory)
+    convert_images_to_png(directory)
     rename_images(directory)
 
 if __name__ == "__main__":
